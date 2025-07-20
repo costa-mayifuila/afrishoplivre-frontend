@@ -7,14 +7,11 @@ export default defineConfig({
   build: {
     rollupOptions: {
       external: (id) => {
-        // Externalizar apenas pacotes EXATOS do Node.js
         const ignorar = ['fs', 'path', 'pdfkit', 'firebase-admin', 'os', 'stream'];
         const match = ignorar.some(pkg => id === pkg || id.startsWith(pkg + '/'));
-
         if (match) {
           console.warn(`🛑 Vite: externalizando "${id}"`);
         }
-
         return match;
       }
     }
