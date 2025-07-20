@@ -1,22 +1,19 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  plugins: [
-    tailwindcss(),
-    react()
-  ],
+  plugins: [tailwindcss(), react()],
   build: {
     rollupOptions: {
       external: (id) => {
-        const externos = ['fs', 'path', 'pdfkit', 'firebase-admin']
-        const deveIgnorar = externos.some(pkg => id.includes(pkg))
-        if (deveIgnorar) {
-          console.warn(`🛑 Ignorando pacote no build: ${id}`)
+        const ignorar = ['fs', 'path', 'pdfkit', 'firebase-admin', 'os', 'stream'];
+        const match = ignorar.some(pkg => id.includes(pkg));
+        if (match) {
+          console.warn(`🛑 Vite: externalizando "${id}"`);
         }
-        return deveIgnorar
+        return match;
       }
     }
   }
-})
+});
