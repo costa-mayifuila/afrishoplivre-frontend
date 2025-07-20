@@ -12,13 +12,16 @@ const Checkout = () => {
   const [produto, setProduto] = useState(null);
   const [erroProduto, setErroProduto] = useState("");
 
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
   useEffect(() => {
     if (id) {
       const fetchProduto = async () => {
         try {
-          const res = await axios.get(`http://localhost:5000/api/publico/produto/${id}`);
+          const res = await axios.get(`${API_URL}/publico/produto/${id}`);
           setProduto(res.data);
         } catch (err) {
+          console.error(err);
           setErroProduto("❌ Produto não encontrado.");
         }
       };
@@ -28,6 +31,7 @@ const Checkout = () => {
 
   const handleCheckout = async () => {
     setLoading(true);
+
     try {
       const reference = String(Date.now());
 
@@ -45,7 +49,7 @@ const Checkout = () => {
       const payload = {
         reference,
         amount,
-        callbackUrl: `http://localhost:5000/api/gpo/callback`,
+        callbackUrl: `${API_URL}/gpo/callback`,
         productId: id || "CART",
         productName: id ? produto?.name || "Produto" : "Carrinho de Compras",
       };
@@ -55,22 +59,18 @@ const Checkout = () => {
         payload.cssUrl = cssUrl;
       }
 
-      const res = await axios.post(
-        "http://localhost:5000/api/gpo/solicitar-token",
-        payload,
-        { headers: { 'Content-Type': 'application/json' } }
-      );
+      const res = await axios.post(`${API_URL}/gpo/solicitar-token`, payload, {
+        headers: { 'Content-Type': 'application/json' }
+      });
 
       const redirectUrl = res.data?.redirectUrl;
-      if (!redirectUrl) {
-        throw new Error("❌ URL de redirecionamento não recebida da EMIS");
-      }
+      if (!redirectUrl) throw new Error("URL de redirecionamento não recebida");
 
       clearCart();
       window.location.href = redirectUrl;
 
     } catch (err) {
-      console.error("❌ Erro ao finalizar compra:", err?.response?.data || err.message);
+      console.error("❌ Erro no checkout:", err?.response?.data || err.message);
       alert("❌ Erro ao finalizar a compra. Tente novamente.");
     } finally {
       setLoading(false);
@@ -91,18 +91,16 @@ const Checkout = () => {
         </h1>
 
         {id && (
-          <div className="mb-6">
+          <div className="mb-6 text-center">
             {erroProduto ? (
-              <p className="text-red-500 text-center">{erroProduto}</p>
+              <p className="text-red-500">{erroProduto}</p>
             ) : produto ? (
-              <div className="text-center">
+              <>
                 <p className="text-lg font-semibold">{produto.name}</p>
-                <p className="text-gray-600">
-                  Preço: {formatarAOA(produto.price)}
-                </p>
-              </div>
+                <p className="text-gray-600">Preço: {formatarAOA(produto.price)}</p>
+              </>
             ) : (
-              <p className="text-center text-gray-500">🔄 Carregando produto...</p>
+              <p className="text-gray-500">🔄 Carregando produto...</p>
             )}
           </div>
         )}
@@ -118,10 +116,7 @@ const Checkout = () => {
               </li>
             ))}
             <li className="pt-3 text-right text-green-700 font-bold">
-              Total:{" "}
-              {formatarAOA(
-                cart.reduce((acc, item) => acc + item.price * item.qty, 0)
-              )}
+              Total: {formatarAOA(cart.reduce((acc, item) => acc + item.price * item.qty, 0))}
             </li>
           </ul>
         )}
@@ -141,3 +136,4 @@ const Checkout = () => {
 };
 
 export default Checkout;
+

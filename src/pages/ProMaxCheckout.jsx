@@ -7,11 +7,12 @@ const ProMaxCheckout = () => {
   const [product, setProduct] = useState(null);
   const [erro, setErro] = useState("");
   const [loading, setLoading] = useState(false);
+  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/products/${productId}`);
+        const res = await axios.get(`${API}/api/products/${productId}`);
         setProduct(res.data);
       } catch (error) {
         console.error(error);
@@ -22,7 +23,7 @@ const ProMaxCheckout = () => {
     if (productId) {
       fetchProduct();
     }
-  }, [productId]);
+  }, [productId, API]);
 
   const handleCheckout = async () => {
     setErro("");
@@ -30,15 +31,16 @@ const ProMaxCheckout = () => {
 
     try {
       const reference = `PROD-${product._id}-${Date.now()}`;
-
-      const res = await axios.post("http://localhost:5000/api/payment/solicitar-token", {
+      const payload = {
         reference,
         amount: product.price,
         productId: product._id,
-        terminalId: "560", // substitua pelo terminal real EMIS
-        callbackUrl: "https://seudominio.com/api/payment/callback",
-        cssUrl: "", // ou personalize com seu estilo próprio
-      });
+        terminalId: "560", // ID fixo do terminal EMIS
+        callbackUrl: `${API}/api/payment/callback`, // garanta que esteja configurado no backend
+        cssUrl: "", // opcional
+      };
+
+      const res = await axios.post(`${API}/api/payment/solicitar-token`, payload);
 
       const { token } = res.data;
 
@@ -68,9 +70,9 @@ const ProMaxCheckout = () => {
       <div className="max-w-md w-full bg-white p-6 rounded-lg shadow-lg">
         <img
           src={
-            product.imagens?.[0]?.startsWith("http")
-              ? product.imagens[0]
-              : `/uploads/produtos/${product.imagens?.[0]}`
+            product.images?.[0]?.filename
+              ? `${API}/uploads/produtos/${product.images[0].filename}`
+              : "https://via.placeholder.com/400x300?text=Sem+Imagem"
           }
           alt={product.name}
           className="w-full h-52 object-cover rounded mb-4 border"

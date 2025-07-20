@@ -14,6 +14,7 @@ export default function EditarProduto() {
   });
 
   const [imagem, setImagem] = useState(null);
+  const [imagemAtual, setImagemAtual] = useState("");
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
 
@@ -26,15 +27,20 @@ export default function EditarProduto() {
             Authorization: `Bearer ${token}`,
           },
         };
-        const res = await axios.get(`http://localhost:5000/api/products/${id}`, config);
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/products/${id}`,
+          config
+        );
         setFormData({
           name: res.data.name,
           description: res.data.description,
           price: res.data.price,
           category: res.data.category,
         });
+        setImagemAtual(res.data.imageUrl || "");
       } catch (error) {
         console.error("Erro ao carregar produto:", error);
+        setErro("❌ Produto não encontrado ou erro na conexão.");
       }
     };
 
@@ -69,10 +75,14 @@ export default function EditarProduto() {
       form.append("category", formData.category);
       if (imagem) form.append("image", imagem);
 
-      await axios.put(`http://localhost:5000/api/products/${id}`, form, config);
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/products/${id}`,
+        form,
+        config
+      );
 
       setMensagem("✅ Produto atualizado com sucesso!");
-      setTimeout(() => navigate("/seller/products"), 2000);
+      setTimeout(() => navigate("/minha-conta"), 2000);
     } catch (err) {
       console.error("Erro ao atualizar produto:", err);
       setErro("❌ Erro ao atualizar o produto.");
@@ -134,6 +144,14 @@ export default function EditarProduto() {
             onChange={handleImageChange}
             className="w-full border px-4 py-2 rounded"
           />
+
+          {imagemAtual && (
+            <img
+              src={imagemAtual}
+              alt="Imagem atual"
+              className="w-32 h-32 object-cover rounded mt-2"
+            />
+          )}
 
           <button
             type="submit"

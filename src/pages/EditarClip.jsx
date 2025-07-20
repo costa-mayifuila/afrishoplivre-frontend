@@ -10,29 +10,34 @@ const EditarClip = () => {
   const [newVideo, setNewVideo] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [mensagem, setMensagem] = useState('');
+
   const token = localStorage.getItem('token');
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
     const fetchClip = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/clips');
-        const clip = res.data.data.find((c) => c._id === id);
+        const res = await axios.get(`${API_URL}/api/clips`);
+        const clip = res.data?.data?.find((c) => c._id === id);
         if (clip) {
-          setProductLink(clip.productLink);
-          setVideoUrl(`http://localhost:5000${clip.videoUrl}`);
+          setProductLink(clip.productLink || '');
+          setVideoUrl(`${API_URL}${clip.videoUrl}`);
+        } else {
+          setMensagem('❌ Clipe não encontrado.');
         }
       } catch (err) {
         console.error('Erro ao buscar clipe:', err);
-        setMensagem('Erro ao carregar dados do clipe.');
+        setMensagem('❌ Erro ao carregar dados do clipe.');
       }
     };
+
     fetchClip();
   }, [id]);
 
   const handleVideoChange = (e) => {
     const file = e.target.files[0];
-    setNewVideo(file);
     if (file) {
+      setNewVideo(file);
       const preview = URL.createObjectURL(file);
       setPreviewUrl(preview);
     }
@@ -42,14 +47,17 @@ const EditarClip = () => {
     e.preventDefault();
     setMensagem('');
 
+    if (!token) {
+      setMensagem('⚠️ Você precisa estar logado para editar clipes.');
+      return;
+    }
+
     try {
       const formData = new FormData();
       formData.append('productLink', productLink);
-      if (newVideo) {
-        formData.append('video', newVideo);
-      }
+      if (newVideo) formData.append('video', newVideo);
 
-      await axios.put(`http://localhost:5000/api/clips/${id}`, formData, {
+      await axios.put(`${API_URL}/api/clips/${id}`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
@@ -59,7 +67,7 @@ const EditarClip = () => {
       setMensagem('✅ Clipe atualizado com sucesso!');
       setTimeout(() => navigate('/minhas-publicacoes'), 2000);
     } catch (err) {
-      console.error(err);
+      console.error('Erro ao atualizar clipe:', err);
       setMensagem('❌ Erro ao atualizar o clipe.');
     }
   };
@@ -80,31 +88,39 @@ const EditarClip = () => {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium">Link do Produto</label>
+          <label className="block text-sm font-medium">🔗 Link do Produto</label>
           <input
             type="text"
             value={productLink}
             onChange={(e) => setProductLink(e.target.value)}
             className="mt-1 w-full border p-2 rounded"
+            required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium">Substituir vídeo (opcional)</label>
-          <input type="file" accept="video/*" onChange={handleVideoChange} className="mt-1" />
+          <label className="block text-sm font-medium">📤 Substituir vídeo (opcional)</label>
+          <input
+            type="file"
+            accept="video/*"
+            onChange={handleVideoChange}
+            className="mt-1"
+          />
         </div>
 
-        <video
-          src={previewUrl || videoUrl}
-          controls
-          className="w-full h-64 object-cover rounded"
-        />
+        {(previewUrl || videoUrl) && (
+          <video
+            src={previewUrl || videoUrl}
+            controls
+            className="w-full h-64 object-cover rounded"
+          />
+        )}
 
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
         >
-          Salvar Alterações
+          💾 Salvar Alterações
         </button>
       </form>
     </div>

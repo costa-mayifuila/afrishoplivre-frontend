@@ -6,27 +6,39 @@ const Payment = () => {
   const [phone, setPhone] = useState('');
   const [amount, setAmount] = useState('');
   const [reference, setReference] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Você precisa estar logado para realizar um pagamento.');
+      return navigate('/login');
+    }
+
+    if (!/^\d+$/.test(phone)) {
+      return alert('Digite apenas números no telefone.');
+    }
+
     try {
-      const token = localStorage.getItem('token');
+      setLoading(true);
       const config = {
         headers: {
           'x-auth-token': token,
         },
       };
-      await axios.post(
-        'http://localhost:5000/api/payment',
-        { phone, amount, reference },
-        config
-      );
+      await axios.post(`${API}/api/payment`, { phone, amount, reference }, config);
       alert('✅ Pagamento iniciado com sucesso!');
       navigate('/');
     } catch (err) {
       console.error("Erro ao iniciar pagamento:", err.response?.data?.msg || err.message);
-      alert("Erro ao iniciar o pagamento.");
+      alert(err.response?.data?.msg || "Erro ao iniciar o pagamento.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -40,12 +52,13 @@ const Payment = () => {
               Número de Telefone
             </label>
             <input
-              type="text"
+              type="tel"
               id="phone"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="Digite o número"
+              placeholder="Ex: 923000000"
               required
+              pattern="[0-9]+"
               className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -60,6 +73,7 @@ const Payment = () => {
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Ex: 5000"
               required
+              min="1"
               className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -79,9 +93,10 @@ const Payment = () => {
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
+            disabled={loading}
+            className={`w-full ${loading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'} text-white py-2 rounded-md transition`}
           >
-            Confirmar Pagamento
+            {loading ? 'Processando...' : 'Confirmar Pagamento'}
           </button>
         </form>
       </div>

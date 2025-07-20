@@ -29,10 +29,8 @@ export default function PublicacaoDeProdutos() {
     setMensagem("");
     setErro("");
 
-    // ✅ Validação da descrição
-    if (formData.description.length < 15
-    ) {
-      setErro("A descrição deve ter no mínimo 15 caracteres.");
+    if (formData.description.length < 150) {
+      setErro("A descrição deve ter no mínimo 150 caracteres.");
       return;
     }
 
@@ -49,12 +47,16 @@ export default function PublicacaoDeProdutos() {
       );
       imagens.forEach((img) => form.append("images", img));
 
-      await axios.post("http://localhost:5000/api/products", form, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/products`,
+        form,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       setMensagem("✅ Produto publicado com sucesso!");
       setFormData({ name: "", description: "", price: "", category: "" });

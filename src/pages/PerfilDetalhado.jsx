@@ -7,27 +7,40 @@ const PerfilDetalhado = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
   useEffect(() => {
     const fetchProfile = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
       try {
-        const token = localStorage.getItem('token');
         const config = {
           headers: {
             'x-auth-token': token,
           },
         };
-        const res = await axios.get('http://localhost:5000/api/users/me', config);
-        setUser(res.data);
-        setLoading(false);
+        const res = await axios.get(`${API}/api/users/me`, config);
+        setUser(res.data || {});
       } catch (err) {
         console.error(err.response?.data?.msg || "Erro ao buscar perfil");
         navigate('/login');
+      } finally {
+        setLoading(false);
       }
     };
-    fetchProfile();
-  }, [navigate]);
 
-  if (loading) return <div className="text-center mt-10 text-gray-600">🔄 Carregando perfil...</div>;
+    fetchProfile();
+  }, [navigate, API]);
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center text-gray-600">
+      🔄 Carregando perfil...
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-100 py-10 px-4">
@@ -39,7 +52,7 @@ const PerfilDetalhado = () => {
             <input
               type="text"
               name="name"
-              value={user.name}
+              value={user.name || ''}
               readOnly
               className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-700"
             />
@@ -49,7 +62,7 @@ const PerfilDetalhado = () => {
             <input
               type="email"
               name="email"
-              value={user.email}
+              value={user.email || ''}
               readOnly
               className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-700"
             />

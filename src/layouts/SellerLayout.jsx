@@ -12,13 +12,15 @@ import {
 export default function SellerLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+
   const [menuAberto, setMenuAberto] = useState(false);
   const [stats, setStats] = useState({
     totalVendas: 0,
     totalProdutos: 0,
     receita: 0,
   });
-  const vendedor = { nome: "Vendedor Exemplo" }; // Substituir futuramente com dados reais
+
+  const vendedor = { nome: "Vendedor Exemplo" }; // Substituir por dados reais futuramente
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -31,20 +33,24 @@ export default function SellerLayout() {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:5000/api/seller/overview", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        if (!token) return;
+
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/seller/overview`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         const data = await res.json();
-        setStats({
-          totalProdutos: data.totalProdutos,
-          totalVendas: data.totalVendas,
-          receita: data.receita,
-        });
+        if (res.ok) {
+          setStats({
+            totalProdutos: data.totalProdutos,
+            totalVendas: data.totalVendas,
+            receita: data.receita,
+          });
+        } else {
+          console.error("Erro ao buscar estatísticas:", data.message);
+        }
       } catch (error) {
-        console.error("Erro ao buscar estatísticas:", error);
+        console.error("Erro na requisição de estatísticas:", error);
       }
     };
 
@@ -53,7 +59,7 @@ export default function SellerLayout() {
 
   return (
     <div className="flex h-screen">
-      {/* Menu Hamburguer para Mobile */}
+      {/* Menu Hamburguer Mobile */}
       <div className="md:hidden absolute top-4 left-4 z-50">
         <button
           onClick={() => setMenuAberto(!menuAberto)}
@@ -106,7 +112,7 @@ export default function SellerLayout() {
           </button>
         </nav>
 
-        {/* Estatísticas Rápidas */}
+        {/* Estatísticas */}
         <div className="mt-6 bg-gray-800 p-4 rounded-lg text-sm space-y-3">
           <div className="flex items-center justify-between">
             <span>Total de Vendas:</span>

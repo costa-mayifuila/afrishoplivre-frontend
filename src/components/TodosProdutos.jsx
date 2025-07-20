@@ -8,7 +8,7 @@ export default function TodosProdutos() {
   useEffect(() => {
     const carregarProdutos = async () => {
       try {
-        const { data } = await axios.get("http://localhost:5000/api/products/publicos");
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/products/publicos`);
         setProdutos(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Erro ao buscar produtos públicos:", error);
@@ -18,7 +18,7 @@ export default function TodosProdutos() {
   }, []);
 
   return (
-    <div className="mt-14">
+    <div className="mt-14 px-4 sm:px-8">
       <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
         🛒 Todos os Produtos
       </h2>
@@ -33,7 +33,7 @@ export default function TodosProdutos() {
               className="min-w-[240px] sm:min-w-0 bg-white p-4 rounded-lg shadow hover:shadow-lg transition flex-shrink-0"
             >
               <img
-                src={produto.image}
+                src={produto.imageUrl || "/img/sem-imagem.png"}
                 alt={produto.name}
                 className="w-full h-44 object-cover rounded"
               />

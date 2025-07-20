@@ -15,30 +15,34 @@ ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 const PainelClipes = () => {
   const [clips, setClips] = useState([]);
   const token = localStorage.getItem('token');
+  const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
+    if (!token) return;
+
     const fetchMyClips = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/clips/me', {
+        const res = await axios.get(`${API}/api/clips/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setClips(res.data.data || []);
       } catch (err) {
-        console.error(err);
+        console.error('Erro ao buscar clipes:', err);
       }
     };
-    fetchMyClips();
-  }, []);
 
-  const totalCurtidas = clips.reduce((acc, c) => acc + c.likes, 0);
-  const totalCompartilhamentos = clips.reduce((acc, c) => acc + c.shares, 0);
+    fetchMyClips();
+  }, [token]);
+
+  const totalCurtidas = clips.reduce((acc, c) => acc + (c.likes || 0), 0);
+  const totalCompartilhamentos = clips.reduce((acc, c) => acc + (c.shares || 0), 0);
 
   const topCurtidos = [...clips]
-    .sort((a, b) => b.likes - a.likes)
+    .sort((a, b) => (b.likes || 0) - (a.likes || 0))
     .slice(0, 5);
 
   const chartData = {
-    labels: topCurtidos.map((c) => `ID ${c._id.slice(-4)}`),
+    labels: topCurtidos.map((c, i) => `Clipe #${c._id.slice(-4)}`),
     datasets: [
       {
         label: 'Curtidas',

@@ -41,6 +41,8 @@ export default function MinhaPagina() {
   const [loadingCompras, setLoadingCompras] = useState(true);
   const navigate = useNavigate();
 
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   const subVendas = [
     "Resumo",
     "Vendas",
@@ -75,13 +77,11 @@ export default function MinhaPagina() {
     const token = localStorage.getItem("token");
     if (!token) return navigate("/login");
 
-    const config = {
-      headers: { Authorization: `Bearer ${token}` },
-    };
+    const config = { headers: { Authorization: `Bearer ${token}` } };
 
     const fetchProfile = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/users/me", config);
+        const res = await axios.get(`${API_URL}/api/users/me`, config);
         setUser(res.data);
       } catch (error) {
         navigate("/login");
@@ -92,7 +92,7 @@ export default function MinhaPagina() {
 
     const fetchCompras = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/orders/me", config); // ✅ Rota corrigida
+        const res = await axios.get(`${API_URL}/api/orders/me`, config);
         setCompras(res.data);
       } catch (error) {
         console.error("Erro ao carregar compras:", error);
@@ -103,7 +103,7 @@ export default function MinhaPagina() {
 
     fetchProfile();
     fetchCompras();
-  }, [navigate]);
+  }, []); // ✅ sem dependências externas desnecessárias
 
   const renderConteudo = () => {
     if (abaAtual === "perfil") return <PerfilUsuario user={user} loading={loading} />;
@@ -122,7 +122,7 @@ export default function MinhaPagina() {
         case "reputacao": return <Reputacao />;
         case "preferencias-de-envio": return <PreferenciasDeEnvio />;
         case "central-de-vendedores": return <CentralDeVendedores />;
-        default: return <PlaceholderSubpagina titulo={sub} />;
+        default: return <PlaceholderSubpagina titulo={`Subpágina: ${sub}`} />;
       }
     }
 
@@ -133,7 +133,7 @@ export default function MinhaPagina() {
         case "promocoes": return <Promocoes />;
         case "publicidade": return <Publicidade />;
         case "minha-pagina": return <MinhaPaginaMarketing />;
-        default: return <PlaceholderSubpagina titulo={sub} />;
+        default: return <PlaceholderSubpagina titulo={`Subpágina: ${sub}`} />;
       }
     }
 
@@ -141,11 +141,11 @@ export default function MinhaPagina() {
       const sub = abaAtual.split("/")[1];
       switch (sub) {
         case "conta-empresarial": return <ContaEmpresarial />;
-        default: return <PlaceholderSubpagina titulo={sub} />;
+        default: return <PlaceholderSubpagina titulo={`Subpágina: ${sub}`} />;
       }
     }
 
-    return <p>Selecione uma opção do menu.</p>;
+    return <p className="text-gray-600">Selecione uma opção do menu para começar.</p>;
   };
 
   return (

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-
 import {
   FacebookShareButton,
   TwitterShareButton,
@@ -15,10 +14,13 @@ const Clips = () => {
   const [clips, setClips] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:5000';
+
   useEffect(() => {
     const fetchClips = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/clips');
+        const res = await axios.get(`${API_URL}/clips`);
         const data = res.data?.data || res.data;
         setClips(Array.isArray(data) ? data : []);
       } catch (err) {
@@ -33,17 +35,16 @@ const Clips = () => {
 
   const handleLike = async (id) => {
     const token = localStorage.getItem('token');
-    if (!token) return alert("Faça login para curtir");
+    if (!token) return alert("⚠️ Faça login para curtir.");
 
     try {
-      await axios.post(
-        `http://localhost:5000/api/clips/${id}/like`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axios.post(`${API_URL}/clips/${id}/like`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
       setClips((prev) =>
         prev.map((clip) =>
-          clip._id === id ? { ...clip, likes: clip.likes + 1 } : clip
+          clip._id === id ? { ...clip, likes: (clip.likes || 0) + 1 } : clip
         )
       );
     } catch (err) {
@@ -53,17 +54,16 @@ const Clips = () => {
 
   const handleShare = async (id) => {
     const token = localStorage.getItem('token');
-    if (!token) return alert("Faça login para compartilhar");
+    if (!token) return alert("⚠️ Faça login para compartilhar.");
 
     try {
-      await axios.post(
-        `http://localhost:5000/api/clips/${id}/share`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axios.post(`${API_URL}/clips/${id}/share`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
       setClips((prev) =>
         prev.map((clip) =>
-          clip._id === id ? { ...clip, shares: clip.shares + 1 } : clip
+          clip._id === id ? { ...clip, shares: (clip.shares || 0) + 1 } : clip
         )
       );
     } catch (err) {
@@ -78,53 +78,54 @@ const Clips = () => {
       </h1>
 
       {loading ? (
-        <p className="text-center text-gray-500">Carregando clipes...</p>
+        <p className="text-center text-gray-500">🔄 Carregando clipes...</p>
       ) : clips.length === 0 ? (
         <p className="text-center text-gray-500">Nenhum clipe disponível.</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {clips.map((clip) => (
             <div
               key={clip._id}
-              className="relative bg-white rounded-lg shadow-md p-4 flex flex-col items-center"
+              className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center"
             >
               <video
-                src={`http://localhost:5000${clip.videoUrl}`} // Corrigido para caminho real
+                src={`${BASE_URL}${clip.videoUrl}`}
                 controls
                 className="w-full h-64 object-cover rounded mb-4"
               />
 
               <Link
-             to={`/checkout/${clip._id}`} // ou produto._id, dependendo do contexto
-             className="w-full bg-blue-600 text-white text-center py-2 rounded-lg hover:bg-blue-700 transition mb-4"
+                to={`/checkout/${clip._id}`}
+                className="w-full bg-blue-600 text-white text-center py-2 rounded-lg hover:bg-blue-700 transition mb-4"
               >
-             Comprar Agora
+                Comprar Agora
               </Link>
-
 
               <div className="flex justify-between items-center w-full">
                 <button
                   onClick={() => handleLike(clip._id)}
                   className="text-pink-600 font-medium hover:text-pink-700"
                 >
-                  ❤️ {clip.likes}
+                  ❤️ {clip.likes || 0}
                 </button>
 
                 <div className="flex gap-2 items-center">
                   <FacebookShareButton
-                    url={`http://localhost:5000${clip.videoUrl}`}
+                    url={`${BASE_URL}${clip.videoUrl}`}
                     onClick={() => handleShare(clip._id)}
                   >
                     <FacebookIcon size={32} round />
                   </FacebookShareButton>
+
                   <TwitterShareButton
-                    url={`http://localhost:5000${clip.videoUrl}`}
+                    url={`${BASE_URL}${clip.videoUrl}`}
                     onClick={() => handleShare(clip._id)}
                   >
                     <TwitterIcon size={32} round />
                   </TwitterShareButton>
+
                   <WhatsappShareButton
-                    url={`http://localhost:5000${clip.videoUrl}`}
+                    url={`${BASE_URL}${clip.videoUrl}`}
                     onClick={() => handleShare(clip._id)}
                   >
                     <WhatsappIcon size={32} round />

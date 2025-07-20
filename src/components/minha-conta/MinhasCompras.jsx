@@ -25,7 +25,6 @@ export default function MinhasCompras({ compras, loading }) {
     }
   };
 
-  /* ---------- PDF ---------- */
   const gerarPDF = (pedido) => {
     const doc = new jsPDF();
     doc.setFontSize(16);
@@ -41,11 +40,15 @@ export default function MinhasCompras({ compras, loading }) {
     doc.save(`recibo_${pedido._id}.pdf`);
   };
 
-  /* ---------- Avaliação ---------- */
   const enviarAvaliacao = async () => {
+    if (comentario.trim().length < 10) {
+      alert("⚠️ O comentário deve ter no mínimo 10 caracteres.");
+      return;
+    }
+
     try {
       setEnviando(true);
-      await fetch("http://localhost:5000/api/avaliacoes", {
+      await fetch(`${import.meta.env.VITE_API_URL}/avaliacoes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -68,7 +71,6 @@ export default function MinhasCompras({ compras, loading }) {
     }
   };
 
-  /* ---------- UI ---------- */
   return (
     <div className="max-w-4xl w-full">
       <h1 className="text-2xl font-bold mb-6 text-blue-800">🛒 Minhas Compras</h1>
@@ -118,10 +120,7 @@ export default function MinhasCompras({ compras, loading }) {
 
               <ul className="pl-4 list-disc text-sm text-gray-600 mb-2">
                 {compra.items.map((item, i) => (
-                  <li
-                    key={i}
-                    className="flex justify-between items-center gap-4"
-                  >
+                  <li key={i} className="flex justify-between items-center gap-4">
                     <span>
                       {item.name} x {item.quantity}
                     </span>
@@ -154,7 +153,6 @@ export default function MinhasCompras({ compras, loading }) {
         </div>
       )}
 
-      {/* ---------- Modal de Avaliação ---------- */}
       {produtoSelecionado && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">

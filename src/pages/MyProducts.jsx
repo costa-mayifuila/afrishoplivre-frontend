@@ -1,4 +1,3 @@
-// src/pages/MyProducts.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
@@ -6,31 +5,31 @@ import { Link, useNavigate } from 'react-router-dom';
 const MyProducts = () => {
   const [products, setProducts] = useState([]);
   const navigate = useNavigate();
-
-  const fetchProducts = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const config = { headers: { 'x-auth-token': token } };
-      const res = await axios.get('http://localhost:5000/api/products/my-products', config);
-      setProducts(res.data);
-    } catch (err) {
-      console.error("Erro ao carregar produtos:", err.response?.data?.msg || err.message);
-    }
-  };
+  const token = localStorage.getItem('token');
+  const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
+    if (!token) return navigate('/login');
+    const fetchProducts = async () => {
+      try {
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+        const res = await axios.get(`${API}/api/products/my-products`, config);
+        setProducts(res.data);
+      } catch (err) {
+        console.error("Erro ao carregar produtos:", err.response?.data?.msg || err.message);
+      }
+    };
+
     fetchProducts();
-  }, []);
+  }, [token]);
 
   const handleDelete = async (id) => {
-    const confirm = window.confirm("Tem certeza que deseja excluir este produto?");
-    if (!confirm) return;
+    if (!window.confirm("Tem certeza que deseja excluir este produto?")) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const config = { headers: { 'x-auth-token': token } };
-      await axios.delete(`http://localhost:5000/api/products/${id}`, config);
-      setProducts(products.filter((p) => p._id !== id));
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      await axios.delete(`${API}/api/products/${id}`, config);
+      setProducts((prev) => prev.filter((p) => p._id !== id));
     } catch (err) {
       console.error("Erro ao excluir produto:", err);
       alert("Erro ao excluir o produto.");
@@ -71,7 +70,7 @@ const MyProducts = () => {
                     product.image ||
                     'https://via.placeholder.com/300x200?text=Produto'
                   }
-                  alt={product.name}
+                  alt={product.name || 'Produto'}
                   className="w-full h-40 object-cover rounded mb-4"
                 />
                 <h2 className="text-lg font-semibold text-gray-800">{product.name}</h2>
@@ -79,9 +78,7 @@ const MyProducts = () => {
                   {product.description}
                 </p>
                 <p className="text-blue-700 font-bold mt-2">
-                  {product.price
-                    ? formatarAOA(product.price)
-                    : "Kz 0,00"}
+                  {product.price ? formatarAOA(product.price) : "Kz 0,00"}
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-2">

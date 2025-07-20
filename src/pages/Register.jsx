@@ -5,7 +5,9 @@ import { useNavigate } from 'react-router-dom';
 const Register = () => {
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   const validateForm = () => {
     const newErrors = {};
@@ -24,22 +26,25 @@ const Register = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (validateForm()) {
-      try {
-        const res = await axios.post('http://localhost:5000/api/auth/register', formData);
-        localStorage.setItem('token', res.data.token);
-        navigate('/');
-      } catch (err) {
-        console.error(err.response?.data?.msg || 'Erro no registro');
-        alert('Erro ao registrar. Tente novamente.');
-      }
-    }
-  };
-
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    setLoading(true);
+    try {
+      const res = await axios.post(`${API}/api/auth/register`, formData);
+      localStorage.setItem('token', res.data.token);
+      navigate('/');
+    } catch (err) {
+      console.error(err.response?.data?.msg || 'Erro ao registrar');
+      alert(err.response?.data?.msg || 'Erro ao registrar. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -82,9 +87,14 @@ const Register = () => {
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
+            disabled={loading}
+            className={`w-full text-white py-2 rounded-md transition ${
+              loading
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700'
+            }`}
           >
-            Registrar
+            {loading ? '🔄 Registrando...' : 'Registrar'}
           </button>
         </form>
       </div>

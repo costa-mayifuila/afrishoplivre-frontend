@@ -6,11 +6,12 @@ import { FaEye, FaShoppingCart } from "react-icons/fa";
 const ProductList = ({ searchQuery }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/products");
+        const res = await axios.get(`${API}/api/products`);
         console.log("Produtos carregados:", res.data);
         setProducts(res.data);
       } catch (err) {
@@ -20,11 +21,17 @@ const ProductList = ({ searchQuery }) => {
       }
     };
     fetchProducts();
-  }, []);
+  }, [API]);
 
   const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery?.toLowerCase() || "")
+    product.name.toLowerCase().includes(searchQuery?.trim().toLowerCase() || "")
   );
+
+  const formatarAOA = (valor) =>
+    new Intl.NumberFormat("pt-AO", {
+      style: "currency",
+      currency: "AOA",
+    }).format(valor || 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-purple-50 py-10 px-4">
@@ -46,7 +53,7 @@ const ProductList = ({ searchQuery }) => {
                   <img
                     src={
                       product.images?.length > 0
-                        ? `http://localhost:5000/uploads/produtos/${product.images[0].filename}`
+                        ? `${API}/uploads/produtos/${product.images[0].filename}`
                         : "https://via.placeholder.com/400x300?text=Sem+Imagem"
                     }
                     alt={product.name}
@@ -55,7 +62,9 @@ const ProductList = ({ searchQuery }) => {
                   <div className="p-4">
                     <h2 className="text-lg font-semibold text-gray-800 line-clamp-1">{product.name}</h2>
                     <p className="text-sm text-gray-600 mt-1 line-clamp-2">{product.description}</p>
-                    <p className="text-xl font-bold text-green-600 mt-3">Kz {product.price}</p>
+                    <p className="text-xl font-bold text-green-600 mt-3">
+                      {formatarAOA(product.price)}
+                    </p>
 
                     <div className="flex gap-2 mt-4">
                       <Link

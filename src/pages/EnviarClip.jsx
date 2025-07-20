@@ -8,6 +8,9 @@ const EnviarClip = () => {
   const [mensagem, setMensagem] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const token = localStorage.getItem('token');
+
   const handleVideoChange = (e) => {
     const file = e.target.files[0];
     setVideo(file);
@@ -20,21 +23,26 @@ const EnviarClip = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMensagem('');
+
+    if (!token) {
+      setMensagem('⚠️ Você precisa estar logado para enviar clipes.');
+      return;
+    }
+
     if (!video || !productLink) {
-      setMensagem('Preencha todos os campos.');
+      setMensagem('❌ Preencha todos os campos.');
       return;
     }
 
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
       const formData = new FormData();
       formData.append('video', video);
       formData.append('productLink', productLink);
 
-      await axios.post('http://localhost:5000/api/clips', formData, {
+      await axios.post(`${API_URL}/api/clips`, formData, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
         },
       });
@@ -58,7 +66,11 @@ const EnviarClip = () => {
       {mensagem && (
         <p
           className={`mb-4 text-sm ${
-            mensagem.startsWith('✅') ? 'text-green-600' : 'text-red-600'
+            mensagem.startsWith('✅')
+              ? 'text-green-600'
+              : mensagem.startsWith('⚠️')
+              ? 'text-yellow-600'
+              : 'text-red-600'
           }`}
         >
           {mensagem}
@@ -67,12 +79,13 @@ const EnviarClip = () => {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Vídeo (mp4, webm...)</label>
+          <label className="block text-sm font-medium text-gray-700">🎥 Vídeo (mp4, webm...)</label>
           <input
             type="file"
             accept="video/*"
             onChange={handleVideoChange}
             className="mt-1 w-full border p-2 rounded"
+            required
           />
         </div>
 
@@ -85,13 +98,14 @@ const EnviarClip = () => {
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Link do Produto</label>
+          <label className="block text-sm font-medium text-gray-700">🔗 Link do Produto</label>
           <input
             type="text"
             value={productLink}
             onChange={(e) => setProductLink(e.target.value)}
             placeholder="https://afrishoplivre.com/produto/..."
             className="mt-1 w-full border p-2 rounded"
+            required
           />
         </div>
 
@@ -100,7 +114,7 @@ const EnviarClip = () => {
           disabled={loading}
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
         >
-          {loading ? 'Enviando...' : 'Publicar Clipe'}
+          {loading ? '⏳ Enviando...' : '🚀 Publicar Clipe'}
         </button>
       </form>
     </div>
@@ -108,3 +122,4 @@ const EnviarClip = () => {
 };
 
 export default EnviarClip;
+

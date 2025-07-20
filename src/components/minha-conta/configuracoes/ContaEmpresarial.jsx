@@ -39,7 +39,7 @@ export default function ContaEmpresarial() {
       form.append("alvara", formData.alvara);
       if (formData.documentos) form.append("documentos", formData.documentos);
 
-      await axios.post("http://localhost:5000/api/empresa", form, config);
+      await axios.post(`${import.meta.env.VITE_API_URL}/empresa`, form, config);
 
       setMensagem("✅ Dados empresariais enviados com sucesso!");
       setFormData({ nomeEmpresa: "", nif: "", alvara: "", documentos: null });
