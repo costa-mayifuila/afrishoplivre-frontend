@@ -1,15 +1,17 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api"; // Ajuste conforme necessário
+// Em Vite: variáveis que começam com VITE_ ficam disponíveis em import.meta.env
+// Crie em .env.local e no Vercel o VITE_API_URL adequado:
+const baseURL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// ✅ Interceptor deve vir antes do export!
+// Interceptor de token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
