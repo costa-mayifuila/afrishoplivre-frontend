@@ -1,6 +1,7 @@
+// src/components/PublicacaoDeProdutos.jsx
 import React, { useState } from "react";
-import axios from "axios";
 import { FaBoxOpen, FaCloudUploadAlt } from "react-icons/fa";
+import api from "../api/api.jsx"; // usa o axios configurado
 
 export default function PublicacaoDeProdutos() {
   const [formData, setFormData] = useState({
@@ -35,35 +36,23 @@ export default function PublicacaoDeProdutos() {
     }
 
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setErro("⚠️ Sessão expirada. Faça login novamente.");
-        return;
-      }
-
+      // monta o FormData
       const form = new FormData();
       Object.entries(formData).forEach(([key, value]) =>
         form.append(key, value)
       );
       imagens.forEach((img) => form.append("images", img));
 
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/products`,
-        form,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      // chama a rota correta: POST /api/products
+      await api.post("/products", form);
 
       setMensagem("✅ Produto publicado com sucesso!");
+      // limpa o formulário
       setFormData({ name: "", description: "", price: "", category: "" });
       setImagens([]);
       setPreview([]);
     } catch (err) {
-      console.error(err);
+      console.error("Erro ao publicar produto:", err);
       const msg =
         err.response?.data?.message || "❌ Erro ao publicar o produto.";
       setErro(msg);
@@ -89,6 +78,7 @@ export default function PublicacaoDeProdutos() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Nome */}
         <div>
           <label className="text-sm text-gray-700 font-semibold block mb-1">
             Nome do Produto
@@ -104,6 +94,7 @@ export default function PublicacaoDeProdutos() {
           />
         </div>
 
+        {/* Descrição */}
         <div>
           <label className="text-sm text-gray-700 font-semibold block mb-1">
             Descrição
@@ -119,6 +110,7 @@ export default function PublicacaoDeProdutos() {
           />
         </div>
 
+        {/* Preço e Categoria */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-sm text-gray-700 font-semibold block mb-1">
@@ -151,6 +143,7 @@ export default function PublicacaoDeProdutos() {
           </div>
         </div>
 
+        {/* Upload de Imagens */}
         <div>
           <label className="text-sm text-gray-700 font-semibold block mb-1">
             Imagens do Produto
@@ -173,13 +166,14 @@ export default function PublicacaoDeProdutos() {
               <img
                 key={i}
                 src={src}
-                alt={`imagem-${i}`}
+                alt={`imagem-preview-${i}`}
                 className="w-16 h-16 object-cover rounded border"
               />
             ))}
           </div>
         </div>
 
+        {/* Botão de Envio */}
         <button
           type="submit"
           className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white px-6 py-3 font-semibold rounded-lg hover:opacity-90 transition shadow-md"
@@ -190,3 +184,4 @@ export default function PublicacaoDeProdutos() {
     </div>
   );
 }
+
