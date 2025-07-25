@@ -1,7 +1,7 @@
 // src/components/PublicacaoDeProdutos.jsx
 import React, { useState } from "react";
 import { FaBoxOpen, FaCloudUploadAlt } from "react-icons/fa";
-import api from "../api/api.jsx"; // usa o axios configurado
+import api from "../api/api.jsx"; // axios configurado com baseURL e token
 
 export default function PublicacaoDeProdutos() {
   const [formData, setFormData] = useState({
@@ -36,18 +36,18 @@ export default function PublicacaoDeProdutos() {
     }
 
     try {
-      // monta o FormData
+      // Prepara FormData
       const form = new FormData();
       Object.entries(formData).forEach(([key, value]) =>
         form.append(key, value)
       );
       imagens.forEach((img) => form.append("images", img));
 
-      // chama a rota correta: POST /api/products
-      await api.post("/products", form);
+      // Chama o endpoint correto: POST /api/products
+      await api.post("/api/products", form);
 
       setMensagem("✅ Produto publicado com sucesso!");
-      // limpa o formulário
+      // Limpa formulário
       setFormData({ name: "", description: "", price: "", category: "" });
       setImagens([]);
       setPreview([]);
@@ -126,7 +126,6 @@ export default function PublicacaoDeProdutos() {
               required
             />
           </div>
-
           <div>
             <label className="text-sm text-gray-700 font-semibold block mb-1">
               Categoria
@@ -160,7 +159,6 @@ export default function PublicacaoDeProdutos() {
               required
             />
           </label>
-
           <div className="flex flex-wrap gap-3 mt-3">
             {preview.map((src, i) => (
               <img
@@ -184,4 +182,3 @@ export default function PublicacaoDeProdutos() {
     </div>
   );
 }
-
